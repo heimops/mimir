@@ -1,8 +1,8 @@
-from .base import StorageBackend
-from .s3 import S3Backend
-from .azure import AzureBackend
-from .gcs import GCSBackend
 from ..config import Config
+from .azure import AzureBackend
+from .base import StorageBackend
+from .gcs import GCSBackend
+from .s3 import S3Backend
 
 
 def get_backend(config: Config) -> StorageBackend:
