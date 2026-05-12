@@ -1,0 +1,23 @@
+# Example: back up specific PVCs to IBM Cloud Object Storage (S3-compatible).
+#
+# Prerequisites:
+#   kubectl create secret generic mimir-cos-creds -n mimir-system \
+#     --from-literal=MIMIR_S3__BUCKET=my-cos-bucket \
+#     --from-literal=MIMIR_S3__ACCESS_KEY_ID=<hmac-access-key> \
+#     --from-literal=MIMIR_S3__SECRET_ACCESS_KEY=<hmac-secret-key> \
+#     --from-literal=MIMIR_S3__REGION=us-south \
+#     --from-literal=MIMIR_S3__ENDPOINT_URL=https://s3.us-south.cloud-object-storage.appdomain.cloud \
+#     --from-literal=MIMIR_S3__PROVIDER=IBMCOS
+apiVersion: mimir.io/v1alpha1
+kind: BackupSchedule
+metadata:
+  name: staging-weekly-ibmcos
+  namespace: mimir-system
+spec:
+  namespace: staging
+  schedule: "0 3 * * 0"        # Every Sunday at 03:00 UTC
+  storageBackend: s3
+  storageSecret: mimir-cos-creds
+  pvcs:
+    - database-data             # Only back up these two PVCs
+    - uploads

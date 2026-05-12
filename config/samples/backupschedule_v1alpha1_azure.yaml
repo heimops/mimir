@@ -1,0 +1,17 @@
+# Example: back up all PVCs in the "data" namespace to Azure Blob Storage every 6 hours.
+#
+# Prerequisites:
+#   kubectl create secret generic mimir-azure-creds -n mimir-system \
+#     --from-literal=MIMIR_AZURE__CONTAINER=k8s-backups \
+#     --from-literal=MIMIR_AZURE__ACCOUNT=mystorageaccount \
+#     --from-literal=MIMIR_AZURE__KEY=<storage-account-key>
+apiVersion: mimir.io/v1alpha1
+kind: BackupSchedule
+metadata:
+  name: data-6h-azure
+  namespace: mimir-system
+spec:
+  namespace: data
+  schedule: "0 */6 * * *"      # Every 6 hours
+  storageBackend: azure
+  storageSecret: mimir-azure-creds

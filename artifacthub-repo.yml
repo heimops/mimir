@@ -1,0 +1,10 @@
+# Artifact Hub repository metadata.
+# See https://artifacthub.io/docs/topics/repositories/#helm-charts-repositories
+#
+# repositoryID is assigned by Artifact Hub after you register the repository at:
+#   https://artifacthub.io/control-panel/repositories/add
+# Replace the placeholder below with the real UUID once registered.
+repositoryID: 00000000-0000-0000-0000-000000000000
+owners:
+  - name: heimops
+    email: maintainers@heimops.io

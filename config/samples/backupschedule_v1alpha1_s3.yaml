@@ -1,0 +1,19 @@
+# Example: back up all PVCs in the "production" namespace to AWS S3 every night at 02:00 UTC.
+#
+# Prerequisites:
+#   kubectl create secret generic mimir-s3-creds -n mimir-system \
+#     --from-literal=MIMIR_S3__BUCKET=my-backup-bucket \
+#     --from-literal=MIMIR_S3__ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE \
+#     --from-literal=MIMIR_S3__SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY \
+#     --from-literal=MIMIR_S3__REGION=eu-west-1
+apiVersion: mimir.io/v1alpha1
+kind: BackupSchedule
+metadata:
+  name: production-nightly-s3
+  namespace: mimir-system
+spec:
+  namespace: production       # Kubernetes namespace whose PVCs will be backed up
+  schedule: "0 2 * * *"       # Every day at 02:00 UTC
+  storageBackend: s3
+  storageSecret: mimir-s3-creds
+  # pvcs: []                  # Omit or leave empty to back up ALL PVCs in the namespace

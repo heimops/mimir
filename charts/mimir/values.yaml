@@ -1,0 +1,25 @@
+# Operator deployment
+operator:
+  image:
+    repository: ghcr.io/heimops/mimir-operator
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicas: 1
+
+# Image used by CronJobs created for each BackupSchedule (can be overridden per CR)
+app:
+  image:
+    repository: ghcr.io/heimops/mimir
+    tag: latest
+
+serviceAccount:
+  create: true
+  name: mimir
+
+rbac:
+  create: true
+
+# Validating webhook — requires cert-manager to be installed in the cluster.
+# Set enabled: false to run without cert-manager (e.g. local development).
+webhook:
+  enabled: true

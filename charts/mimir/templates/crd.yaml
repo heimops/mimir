@@ -1,0 +1,97 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: backupschedules.mimir.io
+  labels:
+    {{- include "mimir.labels" . | nindent 4 }}
+spec:
+  group: mimir.io
+  scope: Namespaced
+  names:
+    plural: backupschedules
+    singular: backupschedule
+    kind: BackupSchedule
+    shortNames:
+      - bs
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Namespace
+          type: string
+          jsonPath: .spec.namespace
+        - name: Schedule
+          type: string
+          jsonPath: .spec.schedule
+        - name: Backend
+          type: string
+          jsonPath: .spec.storageBackend
+        - name: Ready
+          type: string
+          jsonPath: '.status.conditions[?(@.type=="Ready")].status'
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+      schema:
+        openAPIV3Schema:
+          type: object
+          required: [spec]
+          properties:
+            spec:
+              type: object
+              required: [namespace, schedule, storageBackend]
+              properties:
+                namespace:
+                  type: string
+                  description: Kubernetes namespace whose PVCs will be backed up.
+                schedule:
+                  type: string
+                  description: Cron expression (e.g. "0 2 * * *").
+                storageBackend:
+                  type: string
+                  enum: [s3, azure, gcs]
+                  description: Target storage backend.
+                storageSecret:
+                  type: string
+                  description: >
+                    Name of a Secret in the same namespace containing MIMIR_* env vars
+                    with storage credentials (e.g. MIMIR_S3__BUCKET, MIMIR_S3__ACCESS_KEY_ID).
+                pvcs:
+                  type: array
+                  items:
+                    type: string
+                  description: PVC names to back up. Omit or leave empty to back up all PVCs.
+                image:
+                  type: string
+                  description: Override the mimir app container image for this schedule.
+            status:
+              type: object
+              properties:
+                cronJob:
+                  type: string
+                conditions:
+                  type: array
+                  x-kubernetes-list-map-keys: [type]
+                  x-kubernetes-list-type: map
+                  items:
+                    type: object
+                    required: [type, status, lastTransitionTime, reason]
+                    properties:
+                      type:
+                        type: string
+                      status:
+                        type: string
+                        enum: ["True", "False", "Unknown"]
+                      observedGeneration:
+                        type: integer
+                        format: int64
+                      lastTransitionTime:
+                        type: string
+                        format: date-time
+                      reason:
+                        type: string
+                      message:
+                        type: string

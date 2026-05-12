@@ -1,0 +1,33 @@
+apiVersion: v2
+name: mimir
+description: Kubernetes operator to back up persistent volumes to S3, Azure Blob, or GCS
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+home: https://github.com/heimops/mimir
+sources:
+  - https://github.com/heimops/mimir
+maintainers:
+  - name: heimops
+    url: https://github.com/heimops
+keywords:
+  - backup
+  - kubernetes
+  - operator
+  - pvc
+  - s3
+  - azure
+  - gcs
+annotations:
+  artifacthub.io/license: Apache-2.0
+  artifacthub.io/operator: "true"
+  artifacthub.io/operatorCapabilities: Basic Install
+  artifacthub.io/signKey: |
+    fingerprint: cosign
+    url: https://github.com/heimops/mimir/releases
+  artifacthub.io/links: |
+    - name: Source
+      url: https://github.com/heimops/mimir
+  artifacthub.io/changes: |
+    - kind: added
+      description: Initial release — BackupSchedule CRD, operator, S3/Azure/GCS backends

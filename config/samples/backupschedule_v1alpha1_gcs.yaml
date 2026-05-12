@@ -1,0 +1,17 @@
+# Example: back up all PVCs in the "prod" namespace to Google Cloud Storage using Workload Identity.
+#
+# When running on GKE with Workload Identity the service account JSON is not needed;
+# the node's identity is used automatically. Otherwise create:
+#   kubectl create secret generic mimir-gcs-creds -n mimir-system \
+#     --from-literal=MIMIR_GCS__BUCKET=my-gcs-backup-bucket \
+#     --from-literal=MIMIR_GCS__SERVICE_ACCOUNT_JSON='{"type":"service_account",...}'
+apiVersion: mimir.io/v1alpha1
+kind: BackupSchedule
+metadata:
+  name: prod-nightly-gcs
+  namespace: mimir-system
+spec:
+  namespace: prod
+  schedule: "30 1 * * *"       # Every day at 01:30 UTC
+  storageBackend: gcs
+  storageSecret: mimir-gcs-creds

@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mimir"
+version = "0.1.0"
+description = "Kubernetes persistent volume backup orchestrator"
+requires-python = ">=3.11"
+dependencies = [
+    "kubernetes>=29.0",
+    "apscheduler>=3.10",
+    "click>=8.1",
+    "pydantic>=2.6",
+    "pydantic-settings>=2.2",
+]
+
+[project.scripts]
+mimir = "mimir.__main__:cli"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mimir"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
