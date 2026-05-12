@@ -161,7 +161,7 @@ var _ = Describe("BackupSchedule controller", func() {
 	})
 
 	Context("when a BackupSchedule is deleted", func() {
-		It("garbage-collects the CronJob via owner reference", func() {
+		It("sets an owner reference on the CronJob so Kubernetes garbage-collects it", func() {
 			ctx := context.Background()
 			bs := newBS("bs-delete", "default", mimirio.BackupScheduleSpec{
 				Namespace:      "production",
@@ -169,18 +169,21 @@ var _ = Describe("BackupSchedule controller", func() {
 				StorageBackend: "s3",
 			})
 			Expect(k8sClient.Create(ctx, bs)).To(Succeed())
+			DeferCleanup(func() { _ = k8sClient.Delete(ctx, bs) })
 
-			Eventually(getCronJob(ctx, "default", "mimir-bs-delete"), timeout, interval).
-				ShouldNot(BeNil())
-
-			Expect(k8sClient.Delete(ctx, bs)).To(Succeed())
-
-			Eventually(func() error {
-				cj := &batchv1.CronJob{}
-				return k8sClient.Get(ctx, types.NamespacedName{
-					Name: "mimir-bs-delete", Namespace: "default",
-				}, cj)
-			}, timeout, interval).Should(MatchError(ContainSubstring("not found")))
+			// envtest does not run the Kubernetes GC controller, so we cannot
+			// observe cascade deletion. Instead we verify the controller sets
+			// the OwnerReference correctly — that is all the controller is
+			// responsible for; the actual deletion is Kubernetes' job.
+			Eventually(func(g Gomega) {
+				cj := getCronJob(ctx, "default", "mimir-bs-delete")(g)
+				g.Expect(cj.OwnerReferences).To(HaveLen(1))
+				ref := cj.OwnerReferences[0]
+				g.Expect(ref.Name).To(Equal("bs-delete"))
+				g.Expect(ref.Kind).To(Equal("BackupSchedule"))
+				g.Expect(ref.Controller).NotTo(BeNil())
+				g.Expect(*ref.Controller).To(BeTrue())
+			}, timeout, interval).Should(Succeed())
 		})
 	})
 
