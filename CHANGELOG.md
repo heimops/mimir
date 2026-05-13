@@ -5,6 +5,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-05-13
+
+### Fixed
+- `ValidatingWebhookConfiguration` template had a spurious `spec:` wrapper not valid in the Kubernetes API, causing `helm install` to fail with "field not declared in schema"
+- Added explicit `privateKey.rotationPolicy: Always` to the cert-manager Certificate to silence the deprecation warning in cert-manager ≥ v1.18.0
+
 ## [0.1.0] - 2026-05-12
 
 ### Added
