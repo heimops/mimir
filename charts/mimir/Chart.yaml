@@ -2,8 +2,8 @@ apiVersion: v2
 name: mimir
 description: Kubernetes operator to back up persistent volumes to S3, Azure Blob, or GCS
 type: application
-version: 0.1.1
-appVersion: "0.1.1"
+version: 0.1.2
+appVersion: "0.1.2"
 home: https://github.com/heimops/mimir
 sources:
   - https://github.com/heimops/mimir
@@ -30,6 +30,4 @@ annotations:
       url: https://github.com/heimops/mimir
   artifacthub.io/changes: |
     - kind: fixed
-      description: ValidatingWebhookConfiguration had invalid spec wrapper causing helm install to fail
-    - kind: fixed
-      description: cert-manager Certificate now sets rotationPolicy explicitly to silence v1.18 warning
+      description: ClusterRole now includes backupschedules/finalizers update permission required for blockOwnerDeletion

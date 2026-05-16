@@ -6,13 +6,16 @@ metadata:
   labels:
     {{- include "mimir.labels" . | nindent 4 }}
 rules:
-  # Operator: watch BackupSchedule CRDs cluster-wide
+  # Operator: watch and reconcile BackupSchedule CRDs cluster-wide
   - apiGroups: [mimir.io]
     resources: [backupschedules]
-    verbs: [get, list, watch]
+    verbs: [get, list, watch, update, patch]
   - apiGroups: [mimir.io]
     resources: [backupschedules/status]
     verbs: [patch, update]
+  - apiGroups: [mimir.io]
+    resources: [backupschedules/finalizers]
+    verbs: [update]
 
   # Operator: manage CronJobs in its own namespace (handled by Role, but cluster scope is simpler)
   - apiGroups: [batch]
@@ -29,7 +32,7 @@ rules:
     resources: [jobs]
     verbs: [get, list, watch, create, delete]
 
-  # Kopf: leader election and event writing
+  # Operator: leader election and event writing
   - apiGroups: [""]
     resources: [events]
     verbs: [create, patch]

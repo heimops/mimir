@@ -5,6 +5,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-05-16
+
+### Fixed
+- ClusterRole missing `update` on `backupschedules/finalizers`, causing `blockOwnerDeletion` to be forbidden when the operator sets the CronJob OwnerReference
+
 ## [0.1.1] - 2026-05-13
 
 ### Fixed
