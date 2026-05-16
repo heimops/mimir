@@ -41,6 +41,7 @@ def run_backup(config: Config) -> None:
                     backup_image=config.backup_image,
                     ttl_seconds=config.backup_job_ttl,
                     service_account=config.job_service_account,
+                    image_pull_secret=config.backup_image_pull_secret,
                 )
             except Exception:
                 logger.exception("Failed to create backup job for %s/%s", namespace, pvc_name)

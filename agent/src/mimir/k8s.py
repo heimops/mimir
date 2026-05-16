@@ -44,6 +44,7 @@ def create_backup_job(
     backup_image: str,
     ttl_seconds: int,
     service_account: str,
+    image_pull_secret: str | None = None,
 ) -> str:
     """Create a Kubernetes Job that syncs pvc_name to remote_path via rclone.
 
@@ -78,6 +79,8 @@ def create_backup_job(
     )
     if service_account:
         pod_spec.service_account_name = service_account
+    if image_pull_secret:
+        pod_spec.image_pull_secrets = [client.V1LocalObjectReference(name=image_pull_secret)]
 
     job = client.V1Job(
         api_version="batch/v1",

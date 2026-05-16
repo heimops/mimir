@@ -65,6 +65,9 @@ class Config(BaseSettings):
     backup_image: str = "rclone/rclone:latest"
     backup_job_ttl: int = 3600
     job_service_account: str = ""
+    # Name of an imagePullSecret in the target namespace; needed when the
+    # backup image is hosted on a registry with pull rate limits (e.g. Docker Hub).
+    backup_image_pull_secret: Optional[str] = None
 
     @classmethod
     def settings_customise_sources(
