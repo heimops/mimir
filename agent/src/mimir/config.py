@@ -1,9 +1,28 @@
 from __future__ import annotations
 
-from typing import Optional
+import json
+from typing import Any, Optional, Tuple, Type
 
-from pydantic import BaseModel, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import BaseModel
+from pydantic.fields import FieldInfo
+from pydantic_settings import BaseSettings, EnvSettingsSource, PydanticBaseSettingsSource, SettingsConfigDict
+
+
+class _CommaListEnvSource(EnvSettingsSource):
+    """Env source that accepts comma-separated strings for list[str] fields.
+
+    pydantic-settings v2 calls json.loads() on all complex-typed fields before
+    validators run. This subclass falls back to comma-splitting when the value
+    is a plain string that is not valid JSON (e.g. MIMIR_NAMESPACES=prod,staging).
+    """
+
+    def decode_complex_value(self, field_name: str, field: FieldInfo, value: Any) -> Any:
+        try:
+            return super().decode_complex_value(field_name, field, value)
+        except (json.JSONDecodeError, ValueError):
+            if isinstance(value, str):
+                return [s.strip() for s in value.split(",") if s.strip()]
+            return value
 
 
 class S3Config(BaseModel):
@@ -11,8 +30,8 @@ class S3Config(BaseModel):
     access_key_id: str
     secret_access_key: str
     region: str = "us-east-1"
-    endpoint_url: Optional[str] = None  # set for IBM COS or custom S3-compatible endpoints
-    provider: str = "AWS"  # rclone provider: AWS, IBMCOS, Minio, Other…
+    endpoint_url: Optional[str] = None
+    provider: str = "AWS"
 
 
 class AzureConfig(BaseModel):
@@ -23,7 +42,6 @@ class AzureConfig(BaseModel):
 
 class GCSConfig(BaseModel):
     bucket: str
-    # JSON string of the service account credentials; if omitted, falls back to ADC
     service_account_json: Optional[str] = None
 
 
@@ -33,37 +51,28 @@ class Config(BaseSettings):
         env_nested_delimiter="__",
     )
 
-    # Comma-separated list of namespaces to back up
     namespaces: list[str]
-    # Optional comma-separated list of PVC names; omit to back up all PVCs
     pvcs: Optional[list[str]] = None
 
-    storage_backend: str  # "s3" | "azure" | "gcs"
+    storage_backend: str
 
     s3: Optional[S3Config] = None
     azure: Optional[AzureConfig] = None
     gcs: Optional[GCSConfig] = None
 
-    # Cron expression for scheduled mode (e.g. "0 2 * * *")
     schedule: Optional[str] = None
 
-    # Image used by the rclone backup Jobs
     backup_image: str = "rclone/rclone:latest"
-    # TTL (seconds) before Kubernetes auto-deletes completed/failed Jobs
     backup_job_ttl: int = 3600
-    # ServiceAccount for backup Jobs (must exist in each target namespace)
     job_service_account: str = ""
 
-    @field_validator("namespaces", mode="before")
     @classmethod
-    def _split_namespaces(cls, v):
-        if isinstance(v, str):
-            return [ns.strip() for ns in v.split(",") if ns.strip()]
-        return v
-
-    @field_validator("pvcs", mode="before")
-    @classmethod
-    def _split_pvcs(cls, v):
-        if isinstance(v, str) and v:
-            return [p.strip() for p in v.split(",") if p.strip()]
-        return v
+    def settings_customise_sources(
+        cls,
+        settings_cls: Type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> Tuple[PydanticBaseSettingsSource, ...]:
+        return (init_settings, _CommaListEnvSource(settings_cls), dotenv_settings, file_secret_settings)
