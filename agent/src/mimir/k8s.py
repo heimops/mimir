@@ -58,7 +58,7 @@ def create_backup_job(
     container = client.V1Container(
         name="rclone",
         image=backup_image,
-        args=["sync", "/data", remote_path, "--progress"],
+        args=["copy", "/data", remote_path, "--no-check-dest", "--progress"],
         env=env,
         volume_mounts=[
             client.V1VolumeMount(name="data", mount_path="/data", read_only=True)
