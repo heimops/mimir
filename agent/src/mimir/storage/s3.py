@@ -13,6 +13,9 @@ class S3Backend(StorageBackend):
             "RCLONE_CONFIG_REMOTE_ACCESS_KEY_ID": self.config.access_key_id,
             "RCLONE_CONFIG_REMOTE_SECRET_ACCESS_KEY": self.config.secret_access_key,
             "RCLONE_CONFIG_REMOTE_REGION": self.config.region,
+            # Skip bucket creation check — the bucket must exist beforehand.
+            # Required when the HMAC credentials lack s3:CreateBucket permission.
+            "RCLONE_S3_NO_CHECK_BUCKET": "true",
         }
         if self.config.endpoint_url:
             env["RCLONE_CONFIG_REMOTE_ENDPOINT"] = self.config.endpoint_url
