@@ -20,10 +20,14 @@ class S3Backend(StorageBackend):
             # Assume bucket exists — HMAC credentials often lack s3:CreateBucket.
             # Must be set at the named-remote level, not as a global RCLONE_S3_* var.
             "RCLONE_CONFIG_REMOTE_NO_CHECK_BUCKET": "true",
+            # Skip post-upload HeadObject verification — credentials may lack s3:GetObject.
+            "RCLONE_CONFIG_REMOTE_NO_HEAD": "true",
         }
         if self.config.endpoint_url:
             env["RCLONE_CONFIG_REMOTE_ENDPOINT"] = self.config.endpoint_url
         return env
 
     def remote_path(self, namespace: str, pvc_name: str, timestamp: str) -> str:
-        return f"remote:{self.config.bucket}/{namespace}/{pvc_name}/{timestamp}"
+        # Trailing slash tells rclone this is always a directory, skipping the
+        # HeadObject call rclone uses to distinguish files from directory prefixes.
+        return f"remote:{self.config.bucket}/{namespace}/{pvc_name}/{timestamp}/"
