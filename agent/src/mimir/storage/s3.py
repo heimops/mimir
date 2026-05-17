@@ -13,9 +13,13 @@ class S3Backend(StorageBackend):
             "RCLONE_CONFIG_REMOTE_ACCESS_KEY_ID": self.config.access_key_id,
             "RCLONE_CONFIG_REMOTE_SECRET_ACCESS_KEY": self.config.secret_access_key,
             "RCLONE_CONFIG_REMOTE_REGION": self.config.region,
-            # Skip bucket creation check — the bucket must exist beforehand.
-            # Required when the HMAC credentials lack s3:CreateBucket permission.
-            "RCLONE_S3_NO_CHECK_BUCKET": "true",
+            # IBM COS (and most non-AWS S3-compatible endpoints) require path-style
+            # requests (endpoint/bucket). Without this, rclone uses virtual-hosted
+            # style (bucket.endpoint) which IBM COS rejects with 403.
+            "RCLONE_CONFIG_REMOTE_FORCE_PATH_STYLE": "true",
+            # Assume bucket exists — HMAC credentials often lack s3:CreateBucket.
+            # Must be set at the named-remote level, not as a global RCLONE_S3_* var.
+            "RCLONE_CONFIG_REMOTE_NO_CHECK_BUCKET": "true",
         }
         if self.config.endpoint_url:
             env["RCLONE_CONFIG_REMOTE_ENDPOINT"] = self.config.endpoint_url
