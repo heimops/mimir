@@ -22,6 +22,10 @@ class S3Backend(StorageBackend):
             "RCLONE_CONFIG_REMOTE_NO_CHECK_BUCKET": "true",
             # Skip post-upload HeadObject verification — credentials may lack s3:GetObject.
             "RCLONE_CONFIG_REMOTE_NO_HEAD": "true",
+            # IBM COS (and some S3-compatible endpoints) stall rclone PUT requests over
+            # HTTP/2 multiplexed connections — transfers start but stay at 0 B/s forever.
+            # Forcing HTTP/1.1 unblocks uploads.
+            "RCLONE_CONFIG_REMOTE_DISABLE_HTTP2": "true",
         }
         if self.config.endpoint_url:
             env["RCLONE_CONFIG_REMOTE_ENDPOINT"] = self.config.endpoint_url
