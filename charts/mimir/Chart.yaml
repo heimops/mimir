@@ -2,8 +2,8 @@ apiVersion: v2
 name: mimir
 description: Kubernetes operator to back up persistent volumes to S3, Azure Blob, or GCS
 type: application
-version: 0.1.9
-appVersion: "0.1.9"
+version: 0.1.10
+appVersion: "0.1.10"
 home: https://github.com/heimops/mimir
 sources:
   - https://github.com/heimops/mimir
