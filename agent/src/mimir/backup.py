@@ -17,7 +17,8 @@ def _timestamp() -> str:
 def run_backup(config: Config) -> None:
     k8s.load_config()
     backend = get_backend(config)
-    rclone_env = backend.rclone_env()
+    env = backend.env_vars()
+    image = backend.job_image() or config.backup_image
     ts = _timestamp()
 
     for namespace in config.namespaces:
@@ -36,9 +37,9 @@ def run_backup(config: Config) -> None:
                     namespace=namespace,
                     pvc_name=pvc_name,
                     timestamp=ts,
-                    rclone_env=rclone_env,
-                    remote_path=remote_path,
-                    backup_image=config.backup_image,
+                    env=env,
+                    job_args=backend.job_args(remote_path),
+                    backup_image=image,
                     ttl_seconds=config.backup_job_ttl,
                     service_account=config.job_service_account,
                     image_pull_secret=config.backup_image_pull_secret,

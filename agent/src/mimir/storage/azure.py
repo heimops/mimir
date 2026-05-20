@@ -6,7 +6,7 @@ class AzureBackend(StorageBackend):
     def __init__(self, config: AzureConfig) -> None:
         self.config = config
 
-    def rclone_env(self) -> dict[str, str]:
+    def env_vars(self) -> dict[str, str]:
         return {
             "RCLONE_CONFIG_REMOTE_TYPE": "azureblob",
             "RCLONE_CONFIG_REMOTE_ACCOUNT": self.config.account,

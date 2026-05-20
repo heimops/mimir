@@ -6,7 +6,7 @@ class GCSBackend(StorageBackend):
     def __init__(self, config: GCSConfig) -> None:
         self.config = config
 
-    def rclone_env(self) -> dict[str, str]:
+    def env_vars(self) -> dict[str, str]:
         env: dict[str, str] = {
             "RCLONE_CONFIG_REMOTE_TYPE": "google cloud storage",
             "RCLONE_CONFIG_REMOTE_BUCKET_POLICY_ONLY": "true",

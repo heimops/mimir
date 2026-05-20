@@ -29,7 +29,6 @@ def _job_name(namespace: str, pvc_name: str, timestamp: str) -> str:
     base = f"mimir-{namespace}-{pvc_name}-{timestamp}"
     if len(base) <= 63:
         return base.lower()
-    # keep timestamp at the end for readability; use a hash prefix to stay unique
     digest = hashlib.sha256(f"{namespace}/{pvc_name}".encode()).hexdigest()[:6]
     return f"mimir-{digest}-{timestamp}".lower()
 
@@ -39,27 +38,27 @@ def create_backup_job(
     namespace: str,
     pvc_name: str,
     timestamp: str,
-    rclone_env: dict[str, str],
-    remote_path: str,
+    env: dict[str, str],
+    job_args: list[str],
     backup_image: str,
     ttl_seconds: int,
     service_account: str,
     image_pull_secret: str | None = None,
 ) -> str:
-    """Create a Kubernetes Job that syncs pvc_name to remote_path via rclone.
+    """Create a Kubernetes Job that syncs pvc_name to the remote destination.
 
     The Job is created in the same namespace as the PVC (required for volume access).
     """
     batch = client.BatchV1Api()
     name = _job_name(namespace, pvc_name, timestamp)
 
-    env = [client.V1EnvVar(name=k, value=v) for k, v in rclone_env.items()]
+    k8s_env = [client.V1EnvVar(name=k, value=v) for k, v in env.items()]
 
     container = client.V1Container(
-        name="rclone",
+        name="backup",
         image=backup_image,
-        args=["copy", "/data", remote_path, "--no-check-dest", "--progress"],
-        env=env,
+        args=job_args,
+        env=k8s_env,
         volume_mounts=[
             client.V1VolumeMount(name="data", mount_path="/data", read_only=True)
         ],
@@ -105,5 +104,5 @@ def create_backup_job(
     )
 
     batch.create_namespaced_job(namespace=namespace, body=job)
-    logger.info("Created backup job %s → %s", name, remote_path)
+    logger.info("Created backup job %s → %s", name, job_args[-1] if job_args else "?")
     return name
